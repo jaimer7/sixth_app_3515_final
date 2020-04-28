@@ -1,5 +1,6 @@
 package edu.temple.bookshelf1;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 
@@ -10,7 +11,9 @@ import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -18,21 +21,29 @@ import com.squareup.picasso.Picasso;
 import java.io.Serializable;
 import java.util.HashMap;
 
+import edu.temple.audiobookplayer.AudiobookService;
+import edu.temple.audiobookplayer.AudiobookService.BookProgress;
+
 
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link BookDetailFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class BookDetailFragment extends Fragment implements Parcelable{
+@SuppressLint("ParcelCreator")
+public class BookDetailFragment extends Fragment implements Parcelable {
 
     private static final String BOOK_KEY = "book";
+    private static final String MEDIA_CONTROLLER = "mc";
+
     private Book book;
 
     TextView titleTextView, authorTextView;
     ImageView coverImageView;
+    Button playButton;
 
     public BookDetailFragment() {}
+
 
     public static BookDetailFragment newInstance(Book book) {
         BookDetailFragment fragment = new BookDetailFragment();
@@ -64,6 +75,9 @@ public class BookDetailFragment extends Fragment implements Parcelable{
         titleTextView = v.findViewById(R.id.titleTextView);
         authorTextView = v.findViewById(R.id.authorTextView);
         coverImageView = v.findViewById(R.id.coverImageView);
+        playButton = v.findViewById(R.id.playButton);
+
+
         /*
         Because this fragment can be created with or without
         a book to display when attached, we need to make sure
@@ -83,6 +97,7 @@ public class BookDetailFragment extends Fragment implements Parcelable{
     public void displayBook(Book book) {
         titleTextView.setText(book.title);
         authorTextView.setText(book.author);
+
         String url = book.coverURL.toString();
         Context context = this.getActivity();
         Picasso.with(context).load(url).into(coverImageView);
@@ -96,6 +111,7 @@ public class BookDetailFragment extends Fragment implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-
+        dest.writeParcelable(book, flags);
     }
+
 }

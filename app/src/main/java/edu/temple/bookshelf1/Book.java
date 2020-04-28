@@ -5,6 +5,7 @@ import android.os.Parcelable;
 
 public class Book implements Parcelable {
     int id;
+    int duration;
     String title;
     String author;
     String coverURL;
@@ -24,6 +25,8 @@ public class Book implements Parcelable {
     public void setId(int id) {
         this.id = id;
     }
+
+    public void setDuration(int duration) {this.duration = duration; }
 
 
     @Override
