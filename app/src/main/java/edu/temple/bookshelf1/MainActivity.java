@@ -9,6 +9,8 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Parcelable;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     ArrayList<Book> books;
     int bookChosen;
     int bookChosenId;
+    String bookPlaying;
 
     SeekBar seekBar;
     Button playButton;
@@ -54,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     Button rewindButton;
     int seekBarProgress;
     int playingMax;
+    private Handler handler;
+    private Runnable runnable;
 
     Intent audioServiceIntent;
     boolean connected;
@@ -95,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         seekBar = findViewById(R.id.seekBar);
         pauseButton = findViewById(R.id.pauseButton);
         rewindButton = findViewById(R.id.rewindButton);
+        handler = new Handler();
         hidePlayFeatures();
         twoPane = findViewById(R.id.container2) != null;
         audioServiceIntent = new Intent(MainActivity.this, AudiobookService.class);
@@ -108,7 +114,10 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             bookDetailsFragment = (BookDetailFragment) savedInstanceState.getParcelable("fragment2");
             showPlayFeatures();
             bookChosen = savedInstanceState.getInt("index");
-            bookChosenId = (books.get(bookChosen)).id;
+            if(bookChosen != -1) {
+                bookChosenId = (books.get(bookChosen)).id;
+            }
+
         }
         else {
             bookListFragment = BookListFragment.newInstance(books);
@@ -185,10 +194,14 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
 
     public void prepareForReception() {
+            if(playingMax != seekBar.getMax()) {
+                seekBar.setMax(books.get(bookChosen).duration);
+            }
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                seekBar.setMax((int) books.get(bookChosen).duration);
+                bookPlaying = books.get(bookChosen).title;
+                Toast.makeText(MainActivity.this, ("Now playing ") + bookPlaying, Toast.LENGTH_LONG*10).show();
                 if(audiobookServiceBinder.isPlaying() == false) {
                     audiobookServiceBinder.play(bookChosenId, seekBarProgress);
                     playingMax = books.get(bookChosen).duration;
@@ -201,10 +214,10 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 }
             }
         });
+
         pauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                seekBar.setMax((int) books.get(bookChosen).duration);
                 if (connected) {
                     if (audiobookServiceBinder.isPlaying() == true) {
                         audiobookServiceBinder.pause();
@@ -219,8 +232,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         rewindButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                seekBar.setMax((int) books.get(bookChosen).duration);
-
                 if (connected) {
                     seekBarProgress = 0;
                     seekBar.setProgress(seekBarProgress);
@@ -228,14 +239,14 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 }
             }
         });
-        Handler handler = new Handler();
+
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (connected) {
                     seekBarProgress = progress;
-                    audiobookServiceBinder.seekTo(progress);
+                    audiobookServiceBinder.play(bookChosenId, progress);
                 }
             }
 
